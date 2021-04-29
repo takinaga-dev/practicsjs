@@ -1,6 +1,7 @@
-import { Dropbox } from 'dropbox';
+import { Dropbox, files } from 'dropbox';
 import * as prompt from 'prompt';
 import * as fs from 'fs';
+import { savePdf } from './util';
 
 prompt.start();
 const promtGet = (): Promise<string> => {
@@ -14,19 +15,28 @@ const promtGet = (): Promise<string> => {
   });
 }
 
+
 (async () => {
     
   const ACCESS_TOKEN = await promtGet();
-
-  console.log(ACCESS_TOKEN);
+  const allData: Array<files.FileMetadataReference | files.FolderMetadataReference | files.DeletedMetadataReference> = [];
   const dClient = new Dropbox({accessToken: ACCESS_TOKEN });
-  let saveThumbnail, fileName;
-  const result = await dClient.filesListFolder({ path: '', recursive: false});
-  const countFolder = result.result.entries.filter(file => file['.tag'] === 'folder').map(f => {
+  let saveThumbnail, fileName, nextCursor;
+  let result = await dClient.filesListFolder({ path: '', recursive: true});
+  allData.push(...result.result.entries);
+  nextCursor = result.result.cursor;
+  let count = 0;
+  while(result.result.has_more) {
+    result = await dClient.filesListFolderContinue({cursor: nextCursor})
+    allData.push(...result.result.entries);
+    nextCursor = result.result.cursor;
+    count++;
+  }
+  const countFolder = allData.filter(file => file['.tag'] === 'folder').map(f => {
     console.log('folder:', f.name, ', metainfo: ', f.path_display);
   }).length;
 
-  const countFiles = result.result.entries.filter(file => file['.tag'] === 'file').map(f => {
+  const countFiles = allData.filter(file => file['.tag'] === 'file').map(f => {
     console.log('file:', f.name, ', metainfo: ', f.path_display);
     if (f.path_display.endsWith('.pdf') || f.path_display.endsWith('.jpg')) {
       saveThumbnail = f.path_display;
@@ -35,8 +45,12 @@ const promtGet = (): Promise<string> => {
   }).length;
 
   console.log('folder: ', countFolder, ' file:', countFiles);
-  console.log('has_more?', result.result.has_more);
+  console.log('call count:', count);
+  
+});
 
-  const thumbnail = await dClient.filesGetThumbnail({path: saveThumbnail, size: { '.tag': 'w256h256' }});
-  fs.writeFileSync(`saveImage/${fileName}`, thumbnail.result['fileBinary']);
+(async () => {
+  const ACCESS_TOKEN = await promtGet();
+  const dClient = new Dropbox({accessToken: ACCESS_TOKEN });
+  await savePdf(dClient, '');
 })();
