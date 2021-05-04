@@ -20,6 +20,22 @@ App onlyではなくFull Accessをアプリ作成時に設定する必要があ�
 - 簡単な検索
 - raspberrypiのuiを立てれるようにする
 - dbに漫画のデータを保持する
+- pdfの表示にはPDF.jsを利用するとよいかも
+  - binary to base64さえ出来れば良さそう
+  - https://mozilla.github.io/pdf.js/examples/
+- reactちょっとやってみるか
+  - getting startから
+
+
+## TODO
+思いついたTODOをここに列挙します。
+
+- Mangaはinterfaceじゃなくてclassで文字列からMangaのデータを設定するようにするとよいかも。
+  - 文字列から漫画情報を抽出するparserみたいなクラスを一つ用意してあげる。
+  - http://tatamo.81.la/blog/2016/12/22/lr-parser-generator-implementation/
+- uncategoryが複数のケースに対応
+- 末尾の巻数を抜き出す処理を関数化
+- というかManga classに諸々の処理を抜き出す
 
 ## Authについて
 

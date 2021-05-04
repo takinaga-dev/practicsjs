@@ -1,7 +1,9 @@
 import { Dropbox, files } from 'dropbox';
 import * as prompt from 'prompt';
 import * as fs from 'fs';
-import { savePdf } from './util';
+import * as util from 'util';
+import { moveDataForSpecifiedPath, savePdf } from './util';
+import { ManageManga } from './managemanga/manageManga';
 
 prompt.start();
 const promtGet = (): Promise<string> => {
@@ -19,38 +21,24 @@ const promtGet = (): Promise<string> => {
 (async () => {
     
   const ACCESS_TOKEN = await promtGet();
-  const allData: Array<files.FileMetadataReference | files.FolderMetadataReference | files.DeletedMetadataReference> = [];
-  const dClient = new Dropbox({accessToken: ACCESS_TOKEN });
-  let saveThumbnail, fileName, nextCursor;
-  let result = await dClient.filesListFolder({ path: '', recursive: true});
-  allData.push(...result.result.entries);
-  nextCursor = result.result.cursor;
-  let count = 0;
-  while(result.result.has_more) {
-    result = await dClient.filesListFolderContinue({cursor: nextCursor})
-    allData.push(...result.result.entries);
-    nextCursor = result.result.cursor;
-    count++;
-  }
-  const countFolder = allData.filter(file => file['.tag'] === 'folder').map(f => {
-    console.log('folder:', f.name, ', metainfo: ', f.path_display);
-  }).length;
-
-  const countFiles = allData.filter(file => file['.tag'] === 'file').map(f => {
-    console.log('file:', f.name, ', metainfo: ', f.path_display);
-    if (f.path_display.endsWith('.pdf') || f.path_display.endsWith('.jpg')) {
-      saveThumbnail = f.path_display;
-      fileName = `${f.name}.jpg`;
-    }
-  }).length;
-
-  console.log('folder: ', countFolder, ' file:', countFiles);
-  console.log('call count:', count);
   
-});
+  const dClient = new Dropbox({accessToken: ACCESS_TOKEN });
+  const mClient =  new ManageManga(dClient);
+
+  const results = await mClient.getAllMangaFromDropBox('', true);
+
+  console.log('all files:', results.filter(m => !m.pathOnDropbox.includes('.Trash')).length);
+  console.log('分類できたデータ', results.filter(m => m.volume && m.uncategories.length === 1 && !parseInt(m.uncategories[0])).length);
+  //console.dir(results.filter(m => m.volume && m.uncategories.length === 1 && !parseInt(m.uncategories[0])));
+
+  // saveCacheData
+  fs.writeFileSync('cache.json', util.inspect(results, {maxArrayLength: null}));;
+  fs.writeFileSync('uncategoriesdData.json', util.inspect(results.filter(m => !m.volume && !m.pathOnDropbox.includes('.Trash')), {maxArrayLength: null}), 'utf-8');
+  fs.writeFileSync('categoriesdData.json', util.inspect(results.filter(m => m.volume), {maxArrayLength: null}), 'utf-8');
+})();
 
 (async () => {
   const ACCESS_TOKEN = await promtGet();
   const dClient = new Dropbox({accessToken: ACCESS_TOKEN });
   await savePdf(dClient, '');
-})();
+});

@@ -1,2 +1,5 @@
 node_modules
 saveImage
+cache.json
+uncategoriesdData.json
+categoriesdData.json
