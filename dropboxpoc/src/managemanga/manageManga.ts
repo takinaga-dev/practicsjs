@@ -11,6 +11,7 @@ export class ManageManga {
   async getAllMangaFromDropBox(path: string, recursive: boolean = false, extensions = ['pdf']): Promise<Array<Manga>> {
     let result = await this.dropboxClient.filesListFolder({ path, recursive });
     const allData: Array<files.FileMetadataReference | files.FolderMetadataReference | files.DeletedMetadataReference> = [];
+    // データ格納
     allData.push(...result.result.entries);
     let nextCursor = result.result.cursor;
     while(result.result.has_more) { 
@@ -19,6 +20,7 @@ export class ManageManga {
       nextCursor = result.result.cursor;   
     }
     
+    // 
     let comics: Array<Manga> = [], cs: Array<Manga> = [];
     for(let data of allData) {
       if(data[".tag"] === 'file' && extensions.some(extension => data.name.endsWith(extension))) {
@@ -34,6 +36,7 @@ export class ManageManga {
   }
 
   /*
+    ファイル名(string)からMangaオブジェクトを生成する
     ファイルおよびディレクトリのネーミングについてはルールがいくつか存在する。
     - ファイル名に漫画名/巻数/著者が記載されいるケース
       - その中でも区切り文字がアンダースコア/スペースが存在する
@@ -75,6 +78,8 @@ export class ManageManga {
     const part = result && result.length > 2 ? result[2]: undefined
     const f = result ? fileName.slice(0, -result[0].length): fileName;
     const manga: Manga = { pathOnDropbox: path, uncategories: [f], volume, part };
+
+    // 本来ここでparseInfoFromMangaInfoを実行してmanga objectの詳細を埋めていくべき
     return manga;
   }
 
@@ -88,6 +93,7 @@ export class ManageManga {
       return parseInt(t);
     }
   }
+
 
   private parseInfoFromMangaInfo(manga:Manga): Manga {
     if (manga.pathOnDropbox.includes('.Trash')) {
@@ -118,7 +124,6 @@ export interface Manga {
 
   uncategories?: Array<string>;
 
-  trash?: boolean;
 }
 
 export interface SeriseManga {

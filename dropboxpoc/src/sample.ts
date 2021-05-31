@@ -32,9 +32,10 @@ const promtGet = (): Promise<string> => {
   //console.dir(results.filter(m => m.volume && m.uncategories.length === 1 && !parseInt(m.uncategories[0])));
 
   // saveCacheData
-  fs.writeFileSync('cache.json', util.inspect(results, {maxArrayLength: null}));;
-  fs.writeFileSync('uncategoriesdData.json', util.inspect(results.filter(m => !m.volume && !m.pathOnDropbox.includes('.Trash')), {maxArrayLength: null}), 'utf-8');
-  fs.writeFileSync('categoriesdData.json', util.inspect(results.filter(m => m.volume), {maxArrayLength: null}), 'utf-8');
+  fs.writeFileSync('cache.json', JSON.stringify(results));;
+  fs.writeFileSync('uncategoriesdData.json', JSON.stringify(results.filter(m => !m.volume && !m.pathOnDropbox.includes('.Trash'))));
+  // fs.writeFileSync('categoriesdData.json', util.inspect(results.filter(m => m.volume), {maxArrayLength: null}), 'utf-8');
+  fs.writeFileSync('categoriesdData.json', JSON.stringify(results.filter(m => m.volume)), 'utf-8');
 })();
 
 (async () => {

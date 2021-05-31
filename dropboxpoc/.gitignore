@@ -3,3 +3,4 @@ saveImage
 cache.json
 uncategoriesdData.json
 categoriesdData.json
+*.js

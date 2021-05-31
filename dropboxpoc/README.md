@@ -36,6 +36,7 @@ App onlyではなくFull Accessをアプリ作成時に設定する必要があ�
 - uncategoryが複数のケースに対応
 - 末尾の巻数を抜き出す処理を関数化
 - というかManga classに諸々の処理を抜き出す
+- リファクタやる
 
 ## Authについて
 
